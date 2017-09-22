@@ -1,6 +1,11 @@
 # Prerequisites
 *.d
 
+bin
+obj
+packages
+.vs
+
 # Compiled Object files
 *.slo
 *.lo
