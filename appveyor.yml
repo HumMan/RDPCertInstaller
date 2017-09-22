@@ -2,11 +2,10 @@ version: 1.0.{build}
 install:
 - git clone https://github.com/HumMan/RDPCertInstaller.git
 - nuget restore RDPCertInstaller.sln
-- cp -R packages RDPCertInstaller
 build:
   project: RDPCertInstaller.sln
   verbosity: minimal
 artifacts:
-- path: RDPCertInstaller\bin\x86\Debug\
+- path: bin\x86\Debug\
   name: RDPCertInstaller
   type: zip
