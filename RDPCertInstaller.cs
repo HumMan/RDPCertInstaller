@@ -20,7 +20,7 @@ namespace RDPCertInstaller
         {
             // Create a collection object and populate it using the PFX file
             X509Certificate2Collection collection = new X509Certificate2Collection();
-            collection.Import(certPath, certPass, X509KeyStorageFlags.PersistKeySet);
+            collection.Import(certPath, certPass, X509KeyStorageFlags.MachineKeySet);
 
             foreach (X509Certificate2 cert in collection)
             {
@@ -37,13 +37,13 @@ namespace RDPCertInstaller
 
         private void InstallCertificate(string path, SecureString password)
         {
-            X509Certificate2 certificate = new X509Certificate2(path, password, X509KeyStorageFlags.PersistKeySet);
+            X509Certificate2 certificate = new X509Certificate2(path, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
             InstallCertificate(certificate);
         }
 
         private static string GetCertThumbprint(string certPath, SecureString password = null)
         {
-            X509Certificate2 certificate = new X509Certificate2(certPath, password, X509KeyStorageFlags.PersistKeySet);
+            X509Certificate2 certificate = new X509Certificate2(certPath, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
             return certificate.Thumbprint;
         }
 
@@ -75,7 +75,7 @@ namespace RDPCertInstaller
                 // cf. http://blogs.msdn.com/b/cagatay/archive/2009/02/08/removing-acls-from-csp-key-containers.aspx
                 var cspParams = new CspParameters(rsa.CspKeyContainerInfo.ProviderType, rsa.CspKeyContainerInfo.ProviderName, rsa.CspKeyContainerInfo.KeyContainerName)
                 {
-                    Flags = CspProviderFlags.UseExistingKey,
+                    Flags = CspProviderFlags.UseExistingKey | CspProviderFlags.UseMachineKeyStore,
                     CryptoKeySecurity = rsa.CspKeyContainerInfo.CryptoKeySecurity,
                     KeyNumber = (int)rsa.CspKeyContainerInfo.KeyNumber
                 };
