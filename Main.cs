@@ -28,11 +28,18 @@ namespace RDPCertInstaller
         private void button3_Click(object sender, EventArgs e)
         {
             var certPath = Path.GetTempFileName();
-            var pfxMaker = new PfxMaker(UpdateLog);
-            pfxMaker.MakePfx(textBox1.Text, textBox2.Text, certPath);
-            bool registryThumbprintChanged;
-            var rdpInstaller = new RDPCertInstaller(UpdateLog);
-            rdpInstaller.SetupRdpWithCert(certPath, out registryThumbprintChanged);
+            try
+            {
+                var pfxMaker = new PfxMaker(UpdateLog);
+                pfxMaker.MakePfx(textBox1.Text, textBox2.Text, certPath);
+                bool registryThumbprintChanged;
+                var rdpInstaller = new RDPCertInstaller(UpdateLog);
+                rdpInstaller.SetupRdpWithCert(certPath, out registryThumbprintChanged);
+            }
+            catch
+            {
+                File.Delete(certPath);
+            }
         }
 
         private void UpdateLog(string text)
