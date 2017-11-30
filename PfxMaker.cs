@@ -26,9 +26,11 @@ namespace RDPCertInstaller
             Stack<OpenSSL.X509.X509Certificate> hmm = new Stack<OpenSSL.X509.X509Certificate>();
             if (cert.Count != 0)
             {
+                //all certificates except first is chain
                 foreach (var certInChain in cert.Skip(1))
                     hmm.Add(certInChain);
 
+                //private key is only for first cert
                 var pfx = new OpenSSL.X509.PKCS12(null, key, cert[0], hmm);
 
                 WriteToFile(outputPath, pfx);

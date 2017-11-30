@@ -107,7 +107,7 @@
             this.textBox3.Size = new System.Drawing.Size(330, 81);
             this.textBox3.TabIndex = 5;
             // 
-            // Form1
+            // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -119,7 +119,7 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox1);
             this.MinimumSize = new System.Drawing.Size(370, 250);
-            this.Name = "Form1";
+            this.Name = "Main";
             this.Text = "RDPCertInstaller";
             this.ResumeLayout(false);
             this.PerformLayout();

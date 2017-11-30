@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Security.AccessControl;
@@ -20,25 +21,17 @@ namespace RDPCertInstaller
         {
             // Create a collection object and populate it using the PFX file
             X509Certificate2Collection collection = new X509Certificate2Collection();
-            collection.Import(certPath, certPass, X509KeyStorageFlags.MachineKeySet);
+            collection.Import(certPath, certPass, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
 
-            foreach (X509Certificate2 cert in collection)
-            {
-                InstallCertificate(cert);
-            }
+            InstallCertificate(collection.Cast<X509Certificate2>().ToArray());
         }
 
         public void SetupRdpWithCert(string certPath, out bool registryThumbprintChanged)
         {
-            ImportPfxCollection(certPath);
             var thumbprint = GetCertThumbprint(certPath);
+            ImportPfxCollection(certPath);
+            ChangeCertPermissions(thumbprint);
             UpdateRDPSSLCertHashInRegistry(thumbprint, out registryThumbprintChanged);
-        }
-
-        private void InstallCertificate(string path, SecureString password)
-        {
-            X509Certificate2 certificate = new X509Certificate2(path, password, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
-            InstallCertificate(certificate);
         }
 
         private static string GetCertThumbprint(string certPath, SecureString password = null)
@@ -47,20 +40,30 @@ namespace RDPCertInstaller
             return certificate.Thumbprint;
         }
 
-        private void InstallCertificate(X509Certificate2 certificate)
+        private void ChangeCertPermissions(string thumbprint)
         {
-            var thumbprint = certificate.Thumbprint;
-
             X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
 
-            store.Open(OpenFlags.ReadWrite);
-            store.Add(certificate);
+            store.Open(OpenFlags.ReadOnly);
 
             foreach (var c in store.Certificates)
             {
                 if (c.Thumbprint == thumbprint)
+                {
                     ChangeCertPermissions(c);
+                }
             }
+
+            store.Close();
+        }
+
+        private void InstallCertificate(X509Certificate2[] certificates)
+        {
+            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+
+            store.Open(OpenFlags.ReadWrite);
+            foreach (var certificate in certificates)
+                store.Add(certificate);
             store.Close();
         }
 
@@ -80,15 +83,7 @@ namespace RDPCertInstaller
                 };
 
                 var list = cspParams.CryptoKeySecurity.GetAccessRules(true, true, typeof(SecurityIdentifier));
-                bool allreadyExists = false;
-                foreach (var r in list)
-                {
-                    if (r is CryptoKeyAccessRule accessRule)
-                    {
-                        if (accessRule.IdentityReference.Value == "S-1-5-20")
-                            allreadyExists = true;
-                    }
-                }
+                bool allreadyExists = IdentityRefExists(list, "S-1-5-20");
                 if (!allreadyExists)
                 {
                     cspParams.CryptoKeySecurity.AddAccessRule(new CryptoKeyAccessRule(@"NT AUTHORITY\NETWORK SERVICE", CryptoKeyRights.GenericRead, AccessControlType.Allow));
@@ -103,6 +98,20 @@ namespace RDPCertInstaller
                 else
                     _log("Nothing changed");
             }
+        }
+
+        private static bool IdentityRefExists(AuthorizationRuleCollection list, string identity)
+        {
+            bool allreadyExists = false;
+            foreach (var r in list)
+            {
+                if (r is CryptoKeyAccessRule accessRule)
+                {
+                    if (accessRule.IdentityReference.Value == identity)
+                        allreadyExists = true;
+                }
+            }
+            return allreadyExists;
         }
 
         //https://support.microsoft.com/ru-ru/help/2001849/how-to-force-remote-desktop-services-on-windows-7-to-use-a-custom-serv

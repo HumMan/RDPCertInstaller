@@ -25,6 +25,9 @@ namespace RDPCertInstaller
             catch(Exception ex)
             {
                 UpdateLog(ex.ToString());
+            }
+            finally
+            {
                 File.Delete(certPath);
             }
         }
