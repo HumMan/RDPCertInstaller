@@ -11,10 +11,10 @@ namespace RDPCertInstaller
 {
     class RDPCertInstaller
     {
-        private readonly Action<string> Log;
+        private readonly Action<string> _log;
         public RDPCertInstaller(Action<string> log)
         {
-            Log = log;
+            _log = log;
         }
         private void ImportPfxCollection(string certPath, string certPass = "")
         {
@@ -66,10 +66,9 @@ namespace RDPCertInstaller
 
         private void ChangeCertPermissions(X509Certificate2 certificate)
         {
-            var rsa = certificate.PrivateKey as RSACryptoServiceProvider;
-            if (rsa != null)
+            if (certificate.PrivateKey is RSACryptoServiceProvider rsa)
             {
-                Log("Changing cert permissions ...");
+                _log("Changing cert permissions ...");
                 // Modifying the CryptoKeySecurity of a new CspParameters and then instantiating
                 // a new RSACryptoServiceProvider seems to be the trick to persist the access rule.
                 // cf. http://blogs.msdn.com/b/cagatay/archive/2009/02/08/removing-acls-from-csp-key-containers.aspx
@@ -84,9 +83,11 @@ namespace RDPCertInstaller
                 bool allreadyExists = false;
                 foreach (var r in list)
                 {
-                    var accessRule = r as CryptoKeyAccessRule;
-                    if (accessRule.IdentityReference.Value == "S-1-5-20")
-                        allreadyExists = true;
+                    if (r is CryptoKeyAccessRule accessRule)
+                    {
+                        if (accessRule.IdentityReference.Value == "S-1-5-20")
+                            allreadyExists = true;
+                    }
                 }
                 if (!allreadyExists)
                 {
@@ -97,32 +98,34 @@ namespace RDPCertInstaller
                         // Only created to persist the rule change in the CryptoKeySecurity
                     }
 
-                    Log("Success");
+                    _log("Success");
                 }
                 else
-                    Log("Nothing changed");
+                    _log("Nothing changed");
             }
         }
 
         //https://support.microsoft.com/ru-ru/help/2001849/how-to-force-remote-desktop-services-on-windows-7-to-use-a-custom-serv
         private void UpdateRDPSSLCertHashInRegistry(string newHash, out bool valueChanged)
         {
-            Log("Updating SSLCertificateSHA1Hash in registry ...");
+            _log("Updating SSLCertificateSHA1Hash in registry ...");
             using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp", true))
             {
+                if (key == null)
+                    throw new Exception("Registry key directory not found");
                 var targetName = "SSLCertificateSHA1Hash";
                 var newValue = HexStringToByteArray(newHash);
                 if (key.GetValueNames().Contains(targetName)
                     && IsEqual(key.GetValue(targetName) as byte[], newValue))
                 {
                     valueChanged = false;
-                    Log("Nothing changed");
+                    _log("Nothing changed");
                 }
                 else
                 {
                     valueChanged = true;
                     key.SetValue(targetName, newValue, RegistryValueKind.Binary);
-                    Log("Success");
+                    _log("Success");
                 }
             }
 
@@ -139,11 +142,11 @@ namespace RDPCertInstaller
                 return true;
             }
             else
-                return false;            
+                return false;
         }
 
         //https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array
-        public static byte[] HexStringToByteArray(string hex)
+        private static byte[] HexStringToByteArray(string hex)
         {
             if (hex.Length % 2 == 1)
                 throw new Exception("The binary key cannot have an odd number of digits");
@@ -156,9 +159,9 @@ namespace RDPCertInstaller
             return arr;
         }
 
-        public static int GetHexVal(char hex)
+        private static int GetHexVal(char hex)
         {
-            int val = (int)hex;
+            int val = hex;
             return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
     }

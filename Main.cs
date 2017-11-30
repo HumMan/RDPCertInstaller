@@ -1,18 +1,5 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Security;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RDPCertInstaller
@@ -32,12 +19,12 @@ namespace RDPCertInstaller
             {
                 var pfxMaker = new PfxMaker(UpdateLog);
                 pfxMaker.MakePfx(textBox1.Text, textBox2.Text, certPath);
-                bool registryThumbprintChanged;
                 var rdpInstaller = new RDPCertInstaller(UpdateLog);
-                rdpInstaller.SetupRdpWithCert(certPath, out registryThumbprintChanged);
+                rdpInstaller.SetupRdpWithCert(certPath, out bool registryThumbprintChanged);
             }
-            catch
+            catch(Exception ex)
             {
+                UpdateLog(ex.ToString());
                 File.Delete(certPath);
             }
         }
