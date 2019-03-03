@@ -19,7 +19,7 @@ Build status | [![Build status](https://ci.appveyor.com/api/projects/status/cikr
 Генерировать сертификаты будем с помощью сервиса https://zerossl.com
 * Открываем страницу для создания/обновления сертификата https://zerossl.com/free-ssl/#crt
 * Если мы создаём новый сертификат, то оставляем поля `account-key.txt` и `domain-csr.txt` пустыми. Файлы `account-key.txt, domain-csr.txt, myprivate_domain.key` будут сгенерированы и на следующем шаге их нужно сохранить
-** файл myprivate_domain.key далее используется только локально для генерации pfx сертификата
+  * файл myprivate_domain.key далее используется только локально для генерации pfx сертификата
 * Если мы обновляем сертификат, то вставляем содержимое файлов, полученных при первоначальном создании сертификата, в соответствующие поля 
   * account-key.txt
   * domain-csr.txt
