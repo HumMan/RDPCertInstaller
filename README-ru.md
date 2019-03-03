@@ -1,4 +1,8 @@
 # RDPCertInstaller
+<p align="center">
+  <a href="README.md">English</a> |
+  <span>Pусский</span>
+</p>
 
 Platform | Windows 
 ---------|---------
