@@ -54,5 +54,19 @@ namespace RDPCertInstaller
                 textBox2.Text = openFileDialog2.FileName;
             }
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            var certPath = "cert.pfx";
+            try
+            {
+                var pfxMaker = new PfxMaker(UpdateLog);
+                pfxMaker.MakePfx(textBox1.Text, textBox2.Text, certPath);
+            }
+            catch (Exception ex)
+            {
+                UpdateLog(ex.ToString());
+            }
+        }
     }
 }
